@@ -43,7 +43,6 @@ func PredicateRoute(predicate Predicate) httprouter.Handle {
 				Error:       err.Error(),
 			}
 		} else {
-			log.Print("info: ", "extenderArgs", " extenderArgs = ", extenderArgs)
 			extenderFilterResult = predicate.Handler(extenderArgs)
 		}
 
@@ -52,7 +51,6 @@ func PredicateRoute(predicate Predicate) httprouter.Handle {
 			panic(err)
 		}
 
-		log.Print("info: ", predicate.Name, " feasible nodes = ", string(resultBody))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(resultBody)

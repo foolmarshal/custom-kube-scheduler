@@ -1,6 +1,9 @@
 
 export GO111MODULE=on
 
+#name openebsctl to be a kubectl-plugin
+OPENEBSCTL=kubectl-openebs
+
 .PHONY: test
 test:
 	go test ./pkg/... ./cmd/... -coverprofile cover.out
@@ -16,6 +19,21 @@ fmt:
 .PHONY: vet
 vet:
 	go vet ./pkg/... ./cmd/...
+
+.PHONY: openebsctl
+openebsctl:
+	@echo "----------------------------"
+	@echo "--> openebsctl                    "
+	@echo "----------------------------"
+	@PNAME=OPENEBSCTL CTLNAME=${OPENEBSCTL} sh -c "'$(PWD)/scripts/build.sh'"
+	@echo "--> Removing old directory..."
+	@sudo rm -rf /usr/local/bin/${OPENEBSCTL}
+	@echo "----------------------------"
+	@echo "copying new openebsctl"
+	@echo "----------------------------"
+	@sudo mkdir -p  /usr/local/bin/
+	@sudo cp -a "$(PWD)/bin/OPENEBSCTL/darwin_arm64/${OPENEBSCTL}"  /usr/local/bin/${OPENEBSCTL}
+	@echo "=> copied to /usr/local/bin"
 
 .PHONY: run
 run:

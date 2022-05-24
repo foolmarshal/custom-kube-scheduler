@@ -8,7 +8,6 @@ import (
 
 	"github.com/comail/colog"
 	"github.com/julienschmidt/httprouter"
-
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -27,12 +26,15 @@ var (
 	Graviton2Filter = Predicate{
 		Name: "filter_graviton2",
 		Func: func(pod v1.Pod, node v1.Node) (bool, error) {
-			// 			log.Print("info: ", "filter_graviton2_allocatable_ephemeral_storage",
-			// 				"\n\n ephemeral-storage = ", node.Status.Allocatable["ephemeral-storage"])
-			// 			log.Print("info: ", "filter_graviton2_pod", "\n\n pod = ", pod)
-			// 			log.Print("info: ", "filter_graviton2_requested_pod_spec", "\n\n pod-spec = ", pod.Spec)
-			return true, nil
+			mp := getLVMNodeToAllocatableVolumeMap()
+			availableVolumeInLVM := mp[node.Name]
+			requestedVolumeByPod := getTotalRequestedVolumeByPVCs(pod)
 
+			log.Print("LVM node to vg map : ", mp)
+			log.Print("Available volume in node : ", node.Name, " is : ", availableVolumeInLVM)
+			log.Print("Total requested volume by pod : ", requestedVolumeByPod)
+
+			return requestedVolumeByPod < availableVolumeInLVM, nil
 		},
 	}
 )
@@ -71,7 +73,6 @@ func Run() {
 
 	router := httprouter.New()
 	AddVersion(router)
-
 	predicates := []Predicate{Graviton2Filter}
 	for _, p := range predicates {
 		AddPredicate(router, p)
